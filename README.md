@@ -6,12 +6,12 @@ This project demonstrates how to use Prisma ORM in a Node.js application followi
 
 # Technologies Used
 
-- Node.js
-- Express.js
-- Prisma ORM
-- MySQL
-- MVC Architecture
-- Service Layer Pattern
+* Node.js
+* Express.js
+* Prisma ORM
+* MySQL
+* MVC Architecture
+* Service Layer Pattern
 
 ---
 
@@ -47,11 +47,11 @@ Prisma is a modern ORM for Node.js and TypeScript.
 
 It helps developers:
 
-- Communicate with database using JavaScript
-- Avoid writing raw SQL queries
-- Generate type-safe database queries
-- Manage migrations easily
-- Improve code readability
+* Communicate with database using JavaScript
+* Avoid writing raw SQL queries
+* Generate type-safe database queries
+* Manage migrations easily
+* Improve code readability
 
 ---
 
@@ -186,9 +186,9 @@ npx prisma migrate dev --name init
 
 This command:
 
-- Creates migration files
-- Updates database
-- Generates Prisma Client
+* Creates migration files
+* Updates database
+* Generates Prisma Client
 
 ---
 
@@ -205,7 +205,7 @@ Prisma reads `schema.prisma` and generates Prisma Client.
 This allows you to use:
 
 ```javascript
-prisma.user.findMany();
+prisma.user.findMany()
 ```
 
 Without generating, Prisma models will not exist in Node.js.
@@ -217,7 +217,7 @@ Without generating, Prisma models will not exist in Node.js.
 ## `src/config/prisma.js`
 
 ```javascript
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -231,46 +231,48 @@ module.exports = prisma;
 ## `src/services/user.service.js`
 
 ```javascript
-const prisma = require("../config/prisma");
+const prisma = require('../config/prisma');
 
 const createUser = async (body) => {
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: body.email,
-    },
-  });
 
-  if (existingUser) {
-    throw new Error("Email already exists");
-  }
+    const existingUser = await prisma.user.findUnique({
+        where: {
+            email: body.email
+        }
+    });
 
-  const user = await prisma.user.create({
-    data: {
-      name: body.name,
-      email: body.email,
-      password: body.password,
-    },
-  });
+    if (existingUser) {
+        throw new Error('Email already exists');
+    }
 
-  return user;
+    const user = await prisma.user.create({
+        data: {
+            name: body.name,
+            email: body.email,
+            password: body.password
+        }
+    });
+
+    return user;
 };
 
 const getUsers = async () => {
-  return await prisma.user.findMany();
+    return await prisma.user.findMany();
 };
 
 const getUserById = async (id) => {
-  return await prisma.user.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
+
+    return await prisma.user.findUnique({
+        where: {
+            id: Number(id)
+        }
+    });
 };
 
 module.exports = {
-  createUser,
-  getUsers,
-  getUserById,
+    createUser,
+    getUsers,
+    getUserById
 };
 ```
 
@@ -281,34 +283,38 @@ module.exports = {
 ## `src/controllers/user.controller.js`
 
 ```javascript
-const userService = require("../services/user.service");
+const userService = require('../services/user.service');
 
 const create = async (req, res) => {
-  try {
-    const result = await userService.createUser(req.body);
+    try {
 
-    res.status(201).json({
-      message: "User created successfully",
-      data: result,
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
+        const result = await userService.createUser(req.body);
+
+        res.status(201).json({
+            message: 'User created successfully',
+            data: result
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            message: error.message
+        });
+    }
 };
 
 const getAll = async (req, res) => {
-  const result = await userService.getUsers();
 
-  res.json({
-    data: result,
-  });
+    const result = await userService.getUsers();
+
+    res.json({
+        data: result
+    });
 };
 
 module.exports = {
-  create,
-  getAll,
+    create,
+    getAll
 };
 ```
 
@@ -319,13 +325,13 @@ module.exports = {
 ## `src/routes/user.route.js`
 
 ```javascript
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const userController = require("../controllers/user.controller");
+const userController = require('../controllers/user.controller');
 
-router.post("/", userController.create);
-router.get("/", userController.getAll);
+router.post('/', userController.create);
+router.get('/', userController.getAll);
 
 module.exports = router;
 ```
@@ -337,15 +343,15 @@ module.exports = router;
 ## `src/app.js`
 
 ```javascript
-const express = require("express");
+const express = require('express');
 
-const userRoute = require("./routes/user.route");
+const userRoute = require('./routes/user.route');
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/users", userRoute);
+app.use('/users', userRoute);
 
 module.exports = app;
 ```
@@ -357,12 +363,12 @@ module.exports = app;
 ## `src/server.js`
 
 ```javascript
-const app = require("./app");
+const app = require('./app');
 
 const PORT = 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
 ```
 
@@ -434,9 +440,9 @@ await prisma.user.findMany();
 
 ```javascript
 await prisma.user.findUnique({
-  where: {
-    id: 1,
-  },
+    where: {
+        id: 1
+    }
 });
 ```
 
@@ -446,9 +452,9 @@ await prisma.user.findUnique({
 
 ```javascript
 await prisma.user.create({
-  data: {
-    name: "John",
-  },
+    data: {
+        name: 'John'
+    }
 });
 ```
 
@@ -458,12 +464,12 @@ await prisma.user.create({
 
 ```javascript
 await prisma.user.update({
-  where: {
-    id: 1,
-  },
-  data: {
-    name: "New Name",
-  },
+    where: {
+        id: 1
+    },
+    data: {
+        name: 'New Name'
+    }
 });
 ```
 
@@ -473,9 +479,9 @@ await prisma.user.update({
 
 ```javascript
 await prisma.user.delete({
-  where: {
-    id: 1,
-  },
+    where: {
+        id: 1
+    }
 });
 ```
 
@@ -513,9 +519,9 @@ npx prisma db push
 
 Only handle:
 
-- Request
-- Response
-- Status code
+* Request
+* Response
+* Status code
 
 ---
 
@@ -523,9 +529,9 @@ Only handle:
 
 Handle:
 
-- Business logic
-- Database queries
-- Validation
+* Business logic
+* Database queries
+* Validation
 
 ---
 
@@ -533,25 +539,125 @@ Handle:
 
 Handle:
 
-- Database communication
+* Database communication
 
 ---
 
 # Advantages of Prisma
 
-- Clean syntax
-- Easy CRUD operations
-- Relation support
-- Auto-completion
-- Type safety
-- Faster development
-- Better code structure
+* Clean syntax
+* Easy CRUD operations
+* Relation support
+* Auto-completion
+* Type safety
+* Faster development
+* Better code structure
 
 ---
 
+# Prisma Schema Changes (Add/Delete Table & Columns)
+
+## 1. Add Column
+
+Edit `schema.prisma`:
+
+```prisma
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  age Int?   // new column
+}
+```
+
+Run migration:
+
+```bash
+npx prisma migrate dev --name add_column
+```
+
+---
+
+## 2. Delete Column
+
+Remove field from `schema.prisma`:
+
+```prisma
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+}
+```
+
+Run migration:
+
+```bash
+npx prisma migrate dev --name remove_column
+```
+
+---
+
+## 3. Add Table
+
+Add new model:
+
+```prisma
+model Post {
+  id Int @id @default(autoincrement())
+  title String
+}
+```
+
+Run migration:
+
+```bash
+npx prisma migrate dev --name add_post_table
+```
+
+---
+
+## 4. Delete Table
+
+Remove model from schema:
+
+```prisma
+// delete model Post
+```
+
+Run migration:
+
+```bash
+npx prisma migrate dev --name delete_table
+```
+
+---
+
+## 5. Reset Database (⚠️ dangerous)
+
+This will delete all tables and recreate them:
+
+```bash
+npx prisma migrate reset
+```
+
+---
+
+## 6. Prisma Workflow
+
+```txt
+schema.prisma
+   ↓
+prisma migrate dev
+   ↓
+Database updated
+   ↓
+Prisma Client regenerated
+```
+
 # Official Documentation
 
-- [https://www.prisma.io](https://www.prisma.io)
-- [https://www.prisma.io/docs](https://www.prisma.io/docs)
-- [https://expressjs.com](https://expressjs.com)
-- [https://nodejs.org](https://nodejs.org)
+* [https://www.prisma.io](https://www.prisma.io)
+* [https://www.prisma.io/docs](https://www.prisma.io/docs)
+* [https://expressjs.com](https://expressjs.com)
+* [https://nodejs.org](https://nodejs.org)
