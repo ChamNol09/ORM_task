@@ -1,27 +1,120 @@
 # Prisma ORM with Node.js (MVC + Service Layer)
 
-This guide explains how to use Prisma ORM in a Node.js project following the MVC + Service Layer architecture.
+This project demonstrates how to use Prisma ORM in a Node.js application following the MVC + Service Layer architecture.
 
 ---
 
-# 1. Install Prisma
+# Technologies Used
 
-Create a new project:
+- Node.js
+- Express.js
+- Prisma ORM
+- MySQL
+- MVC Architecture
+- Service Layer Pattern
 
-```bash
-mkdir prisma-demo
-cd prisma-demo
+---
 
-npm init -y
+# Project Structure
+
+```txt
+src/
+│
+├── config/
+│   └── prisma.js
+│
+├── controllers/
+│   └── user.controller.js
+│
+├── services/
+│   └── user.service.js
+│
+├── routes/
+│   └── user.route.js
+│
+├── prisma/
+│   └── schema.prisma
+│
+├── app.js
+└── server.js
 ```
 
-Install Prisma:
+---
+
+# What is Prisma ORM?
+
+Prisma is a modern ORM for Node.js and TypeScript.
+
+It helps developers:
+
+- Communicate with database using JavaScript
+- Avoid writing raw SQL queries
+- Generate type-safe database queries
+- Manage migrations easily
+- Improve code readability
+
+---
+
+# MVC + Service Layer Flow
+
+```txt
+Route
+  ↓
+Controller
+  ↓
+Service Layer
+  ↓
+Prisma ORM
+  ↓
+Database
+```
+
+---
+
+# Installation
+
+## 1. Clone Project
+
+```bash
+git clone <your-repository-url>
+cd prisma-mvc
+```
+
+---
+
+## 2. Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+# Prisma Installation
+
+Install Prisma packages:
 
 ```bash
 npm install prisma @prisma/client
 ```
 
-Initialize Prisma:
+Install Express:
+
+```bash
+npm install express
+```
+
+Install Nodemon:
+
+```bash
+npm install -D nodemon
+```
+
+---
+
+# Initialize Prisma
+
+Run:
 
 ```bash
 npx prisma init
@@ -30,33 +123,37 @@ npx prisma init
 This creates:
 
 ```txt
-prisma/
-  schema.prisma
-
+prisma/schema.prisma
 .env
 ```
 
 ---
 
-# 2. Configure Database
+# Configure Database
 
-Example MySQL connection inside `.env`
+Inside `.env`
 
 ```env
-DATABASE_URL="mysql://root:password@localhost:3306/prisma_demo"
+DATABASE_URL="mysql://root:password@localhost:3306/prisma_mvc"
+```
+
+Example:
+
+```env
+DATABASE_URL="mysql://root:1234@localhost:3306/prisma_mvc"
 ```
 
 ---
 
-# 3. Create First Table
+# Prisma Schema
 
-Open:
+File:
 
 ```txt
 prisma/schema.prisma
 ```
 
-Example schema:
+Example:
 
 ```prisma
 generator client {
@@ -79,54 +176,48 @@ model User {
 
 ---
 
-# 4. Create Table in Database
+# Run Migration
 
-Run migration:
+Create database tables:
 
 ```bash
 npx prisma migrate dev --name init
 ```
 
-What happens:
+This command:
 
-- Prisma creates SQL migration
-- Creates `User` table
+- Creates migration files
+- Updates database
 - Generates Prisma Client
 
 ---
 
-# 5. Generate Prisma Client
+# Generate Prisma Client
 
 ```bash
 npx prisma generate
 ```
 
-Why do we use this?
+Why we use this:
 
-Prisma reads your `schema.prisma` file and generates JavaScript functions/types.
+Prisma reads `schema.prisma` and generates Prisma Client.
 
-Example generated usage:
+This allows you to use:
 
-```js
-prisma.user.create()
-prisma.user.findMany()
-prisma.user.update()
+```javascript
+prisma.user.findMany();
 ```
 
-Without `generate`, these functions do not exist.
+Without generating, Prisma models will not exist in Node.js.
 
 ---
 
-# 6. Create Prisma Connection
+# Prisma Configuration
 
-Create:
+## `src/config/prisma.js`
 
-```txt
-src/config/prisma.js
-```
-
-```js
-const { PrismaClient } = require('@prisma/client');
+```javascript
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
@@ -135,39 +226,33 @@ module.exports = prisma;
 
 ---
 
-# 7. Example MVC + Service Layer Structure
+# Service Layer
 
-```txt
-src/
-├── config/
-│   └── prisma.js
-│
-├── modules/
-│   └── user/
-│       ├── user.controller.js
-│       ├── user.service.js
-│       ├── user.route.js
-│
-├── app.js
-```
+## `src/services/user.service.js`
 
----
-
-# 8. User Service Example
-
-File:
-
-```txt
-src/modules/user/user.service.js
-```
-
-```js
-const prisma = require('../../config/prisma');
+```javascript
+const prisma = require("../config/prisma");
 
 const createUser = async (body) => {
-  return await prisma.user.create({
-    data: body
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email: body.email,
+    },
   });
+
+  if (existingUser) {
+    throw new Error("Email already exists");
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      name: body.name,
+      email: body.email,
+      password: body.password,
+    },
+  });
+
+  return user;
 };
 
 const getUsers = async () => {
@@ -177,25 +262,8 @@ const getUsers = async () => {
 const getUserById = async (id) => {
   return await prisma.user.findUnique({
     where: {
-      id: Number(id)
-    }
-  });
-};
-
-const updateUser = async (id, body) => {
-  return await prisma.user.update({
-    where: {
-      id: Number(id)
+      id: Number(id),
     },
-    data: body
-  });
-};
-
-const deleteUser = async (id) => {
-  return await prisma.user.delete({
-    where: {
-      id: Number(id)
-    }
   });
 };
 
@@ -203,354 +271,287 @@ module.exports = {
   createUser,
   getUsers,
   getUserById,
-  updateUser,
-  deleteUser
 };
 ```
 
 ---
 
-# 9. User Controller Example
+# Controller Layer
 
-File:
+## `src/controllers/user.controller.js`
 
-```txt
-src/modules/user/user.controller.js
-```
-
-```js
-const userService = require('./user.service');
+```javascript
+const userService = require("../services/user.service");
 
 const create = async (req, res) => {
   try {
     const result = await userService.createUser(req.body);
 
-    res.json({
-      message: 'Create success',
-      data: result
+    res.status(201).json({
+      message: "User created successfully",
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message
+    res.status(400).json({
+      message: error.message,
     });
   }
 };
 
 const getAll = async (req, res) => {
-  try {
-    const result = await userService.getUsers();
+  const result = await userService.getUsers();
 
-    res.json({
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
+  res.json({
+    data: result,
+  });
 };
 
 module.exports = {
   create,
-  getAll
+  getAll,
 };
 ```
 
 ---
 
-# 10. User Route Example
+# Route Layer
 
-File:
+## `src/routes/user.route.js`
 
-```txt
-src/modules/user/user.route.js
-```
-
-```js
-const express = require('express');
+```javascript
+const express = require("express");
 const router = express.Router();
-const controller = require('./user.controller');
 
-router.post('/', controller.create);
-router.get('/', controller.getAll);
+const userController = require("../controllers/user.controller");
+
+router.post("/", userController.create);
+router.get("/", userController.getAll);
 
 module.exports = router;
 ```
 
 ---
 
-# 11. Register Route in app.js
+# Express App
 
-```js
-const express = require('express');
+## `src/app.js`
+
+```javascript
+const express = require("express");
+
+const userRoute = require("./routes/user.route");
+
 const app = express();
 
 app.use(express.json());
 
-const userRoute = require('./src/modules/user/user.route');
+app.use("/users", userRoute);
 
-app.use('/users', userRoute);
+module.exports = app;
+```
 
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+---
+
+# Server
+
+## `src/server.js`
+
+```javascript
+const app = require("./app");
+
+const PORT = 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 ```
 
 ---
 
-# 12. How to Modify Table in Prisma
+# Package.json Script
 
-To modify a table:
-
-1. Update `schema.prisma`
-2. Run migration
-
----
-
-# Example 1: Add New Column
-
-Before:
-
-```prisma
-model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+```json
+"scripts": {
+  "dev": "nodemon src/server.js"
 }
 ```
 
-Add `phone` column:
+Run project:
 
-```prisma
-model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
-  phone String?
+```bash
+npm run dev
+```
+
+---
+
+# API Endpoints
+
+## Create User
+
+```http
+POST /users
+```
+
+Body:
+
+```json
+{
+  "name": "John",
+  "email": "john@gmail.com",
+  "password": "123456"
 }
 ```
 
-Run migration:
+---
 
-```bash
-npx prisma migrate dev --name add_phone
+## Get All Users
+
+```http
+GET /users
 ```
 
 ---
 
-# Example 2: Remove Column
+## Get User By ID
 
-Remove:
-
-```prisma
-age Int?
-```
-
-Then run:
-
-```bash
-npx prisma migrate dev --name remove_age
+```http
+GET /users/1
 ```
 
 ---
 
-# Example 3: Rename Column
+# Common Prisma Methods
 
-Before:
+## findMany()
 
-```prisma
-name String
-```
-
-After:
-
-```prisma
-fullName String
-```
-
-Prisma may:
-
-- remove old column
-- create new column
-
-This can lose data.
-
-Recommended approach:
-
-## Step 1
-
-Keep both columns temporarily:
-
-```prisma
-model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  fullName String?
-}
-```
-
-Run migration.
-
-## Step 2
-
-Copy data manually.
-
-## Step 3
-
-Remove old column.
-
----
-
-# Example 4: Add Relation
-
-One user has many posts.
-
-```prisma
-model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-
-  posts Post[]
-}
-
-model Post {
-  id      Int    @id @default(autoincrement())
-  title   String
-
-  userId  Int
-  user    User @relation(fields: [userId], references: [id])
-}
-```
-
-Run:
-
-```bash
-npx prisma migrate dev --name add_post_relation
-```
-
----
-
-# 13. Prisma Commands You Should Know
-
-| Command | Description |
-|---|---|
-| `npx prisma init` | Initialize Prisma |
-| `npx prisma migrate dev` | Create/update tables |
-| `npx prisma generate` | Generate Prisma Client |
-| `npx prisma studio` | Open database GUI |
-| `npx prisma db push` | Push schema without migration |
-| `npx prisma migrate reset` | Reset database |
-
----
-
-# 14. Difference Between migrate dev and db push
-
-## migrate dev
-
-```bash
-npx prisma migrate dev
-```
-
-- Creates migration files
-- Best for real projects
-- Tracks database history
-
----
-
-## db push
-
-```bash
-npx prisma db push
-```
-
-- Directly sync schema
-- No migration history
-- Good for testing
-
----
-
-# 15. Open Prisma Studio
-
-```bash
-npx prisma studio
-```
-
-Prisma Studio is similar to phpMyAdmin for Prisma.
-
-You can:
-
-- view data
-- edit rows
-- delete rows
-- inspect relations
-
----
-
-# 16. Useful Prisma Methods
-
-## Create
-
-```js
-await prisma.user.create({
-  data: {
-    name: 'John',
-    email: 'john@gmail.com'
-  }
-});
-```
-
----
-
-## Find Many
-
-```js
+```javascript
 await prisma.user.findMany();
 ```
 
 ---
 
-## Find Unique
+## findUnique()
 
-```js
+```javascript
 await prisma.user.findUnique({
   where: {
-    id: 1
-  }
+    id: 1,
+  },
 });
 ```
 
 ---
 
-## Update
+## create()
 
-```js
+```javascript
+await prisma.user.create({
+  data: {
+    name: "John",
+  },
+});
+```
+
+---
+
+## update()
+
+```javascript
 await prisma.user.update({
   where: {
-    id: 1
+    id: 1,
   },
   data: {
-    name: 'Updated Name'
-  }
+    name: "New Name",
+  },
 });
 ```
 
 ---
 
-## Delete
+## delete()
 
-```js
+```javascript
 await prisma.user.delete({
   where: {
-    id: 1
-  }
+    id: 1,
+  },
 });
 ```
 
 ---
 
-# 17. Official Documentation
+# Useful Prisma Commands
 
-- https://www.prisma.io/docs
-- https://www.prisma.io/docs/orm/prisma-migrate
-- https://www.prisma.io/docs/orm/prisma-schema/data-model/relations
+## Open Prisma Studio
 
+```bash
+npx prisma studio
+```
+
+---
+
+## Reset Database
+
+```bash
+npx prisma migrate reset
+```
+
+---
+
+## Push Schema Without Migration
+
+```bash
+npx prisma db push
+```
+
+---
+
+# Best Practice
+
+## Controller
+
+Only handle:
+
+- Request
+- Response
+- Status code
+
+---
+
+## Service Layer
+
+Handle:
+
+- Business logic
+- Database queries
+- Validation
+
+---
+
+## Prisma
+
+Handle:
+
+- Database communication
+
+---
+
+# Advantages of Prisma
+
+- Clean syntax
+- Easy CRUD operations
+- Relation support
+- Auto-completion
+- Type safety
+- Faster development
+- Better code structure
+
+---
+
+# Official Documentation
+
+- [https://www.prisma.io](https://www.prisma.io)
+- [https://www.prisma.io/docs](https://www.prisma.io/docs)
+- [https://expressjs.com](https://expressjs.com)
+- [https://nodejs.org](https://nodejs.org)
