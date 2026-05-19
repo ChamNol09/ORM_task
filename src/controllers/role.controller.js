@@ -1,15 +1,36 @@
-const userService = require("../services/user.service");
+const roleService = require("../services/role.service");
 
-const register = async (req, res) => {
+const getRoles = async (req, res) => {
   try {
-    const result = await userService.registerUser(req.body);
+    const result = await roleService.getRoles(req.query);
+
+    res.status(200).json({
+      success: true,
+      msg: "Get roles successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+module.exports = {
+  getRoles,
+};
+
+const createRole = async (req, res) => {
+  try {
+    const result = await roleService.createRole(req.body);
     res.status(201).json({
       success: true,
       data: result,
     });
   } catch (error) {
     console.log(error);
-    
     res.status(400).json({
       success: false,
       message: error.message,
@@ -17,31 +38,9 @@ const register = async (req, res) => {
   }
 };
 
-const getUsers = async (req, res) => {
+const getRoleByID = async (req, res) => {
   try {
-    const result = await userService.getUsers(req.query);
-
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    console.log(error);
-
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-module.exports = {
-  getUsers,
-};
-
-const getById = async (req, res) => {
-  try {
-    const result = await userService.getById(req.params.id);
+    const result = await roleService.getRoleByID(req.params.id);
     return res.status(200).json({
       success: true,
       data: result,
@@ -55,9 +54,9 @@ const getById = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
+const updateRole = async (req, res) => {
   try {
-    const result = await userService.updateUser(req.params.id, req.body);
+    const result = await roleService.updateRole(req.params.id, req.body);
     return res.status(200).json({
       success: true,
       data: result,
@@ -71,12 +70,12 @@ const updateUser = async (req, res) => {
   }
 };
 
-const removeUser = async (req, res) => {
+const deleteRole = async (req, res) => {
   try {
-    await userService.removeUser(req.params.id);
+    const result = await roleService.deleteRole(req.params.id);
     return res.status(200).json({
       success: true,
-      msg: "Delete user successfully!"
+      data: result,
     });
   } catch (error) {
     console.log(error);
@@ -88,9 +87,9 @@ const removeUser = async (req, res) => {
 };
 
 module.exports = {
-  register,
-  getUsers,
-  getById,
-  updateUser,
-  removeUser
+  getRoles,
+  createRole,
+  getRoleByID,
+  updateRole,
+  deleteRole,
 };

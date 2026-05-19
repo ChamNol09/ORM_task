@@ -11,15 +11,17 @@ const registerUser = async (body) => {
 
     const hashPassword = await bcrypt.hash(body.password, 10);
 
-    return await userModel.create({
+    let result =  await userModel.create({
         name: body.name,
         email: body.email,
         password: hashPassword
     });
+    let row = await userModel.findByID(result);
+    return row;
 };
 
-const getUsers = async () => {
-    return await userModel.findAll();
+const getUsers = async (query) => {
+  return await userModel.findAll(query);
 };
 
 const getById = async (id) => {
